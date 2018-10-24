@@ -4,41 +4,27 @@ from bs4 import BeautifulSoup
 
 
 def write_to_csv(html_input):
-    #csvfile = csv.writer(open("chatdata.csv", "w"))
-    #csvfile.writerow(["date"])
+    csvfile = csv.writer(open("tableur.csv", "w",encoding='utf-8', newline=""), delimiter=' ', quotechar='|')
     file = open(html_input, encoding="utf8")
-    soup = BeautifulSoup(file, 'html.parser')
+    soup = BeautifulSoup(file, 'lxml')
 
-    dates = soup.findAll('div', class_ = '_3-94 _2lem')
-    text = soup.findAll('div', class_='_3-96 _2let')
-    author = soup.findAll('div', class_='_3-96 _2pio _2lek _2lel')
+    dates_raw = soup.findAll('div', class_ = '_3-94 _2lem')
+    text_raw = soup.findAll('div', class_='_3-96 _2let')
+    author_raw = soup.findAll('div', class_='_3-96 _2pio _2lek _2lel')
 
-    for k in range(len(text)):
-        print(author[k].get_text())
-        print(dates[k+1].get_text())
-        print(text[k].get_text())
-        print("")
+    authors = []
+    dates = []
+    messages = []
 
-    #reac = soup.findAll('li')
-    # print(reac)
+    for k in range(len(author_raw)):
+        print(k)
+        authors.append(author_raw[k].get_text())
+        dates.append(dates_raw[k+1].get_text())
+        messages.append( text_raw[k].get_text())
 
-    # for date in dates:
-    #     data = date.contents[0].split(",", 1)
-    #     data = data[1].split("at")
-    #     data = str(data[0])
-    #     data = data.split(",")
-    #     data = " ".join(data)
-    #     data = data.split(" ")
-    #     data = " ".join(data)
-    #     csvfile.writerow([data])
+    for k in range(len(authors)):
+        csvfile.writerow([dates[k], authors[k], messages[k]])
 
-# def count_messages_bydate():
-#     df = pd.read_csv('chatdata.csv')
-#     df.groupby(df.date).size().to_csv("count.csv", header=True)
-#     ab = pd.read_csv('count.csv')
-#     ab['date'] = pd.to_datetime(ab.date)
-#     ab.sort_values('date').to_csv("sorted.csv", header=True)
-
-
+    file.close()
 
 write_to_csv("messagetest.html")
