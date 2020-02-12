@@ -1,9 +1,10 @@
 import csv
 from requests_html import HTML
 import re
+import os
 import copy
 
-input_html_file = "input.html"
+input_html_file = "message_1.html"
 output_csv_file = "output.csv"
 
 csv_file = open(output_csv_file, "w", encoding="utf-8", newline='')
@@ -16,8 +17,8 @@ with open(input_html_file, encoding="utf-8") as html_file:
 first_messages = html.find('.pam', first=True)
 participants = re.split(', |: | et ', first_messages.text)
 del (participants[0])
-
-csv_writer.writerow(["date", "auteur", "message"] + participants + ["Vrai message"])
+if os.path.getsize(output_csv_file) < 1000: # If the file already contains information (for fractionned messenger conversations)
+    csv_writer.writerow(["date", "heure", "auteur", "message"] + participants + ["Vrai message"])
 
 base_reac = []
 for p in participants:
@@ -145,20 +146,24 @@ messages = html.find('.pam')
 for m in messages:
 
     date = m.find('._3-94', first=True)
-    if date != None:
+    if date is not None:
         csv_date = date.text.replace('\r', '  ').replace('\n', '  ')
+        if len(csv_date) > 5: # Additionnal security to avoid empty string
+            csv_heure = csv_date.split(' à ')[1]
+            csv_date = csv_date.split(' à ')[0]
+
     else:
         continue
 
     auteur = m.find('._2pio', first=True)
-    if auteur != None:
+    if auteur is not None:
         csv_auteur = auteur.text.replace('\r', '').replace('\n', '')
     else:
         continue
 
     message_is_real_text = True
     text = m.find('._2let', first=True)
-    if text != None:
+    if text is not None:
 
         if "_2yuc" in text.html:
             csv_reac, _ = extract_reaction(text)
@@ -176,6 +181,6 @@ for m in messages:
 
     message_is_real_text = test_if_real_text(csv_text)
 
-    csv_writer.writerow([csv_date, csv_auteur, csv_text] + csv_reac + [message_is_real_text])
+    csv_writer.writerow([csv_date, csv_heure, csv_auteur, csv_text] + csv_reac + [message_is_real_text])
 
 csv_file.close()
